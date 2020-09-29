@@ -1,0 +1,7 @@
+{
+    "host": "localhost",
+    "port": 8000,
+    "debug": true,
+    "workers": 1,
+    "save_folder": "./saved"
+}
