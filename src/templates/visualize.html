@@ -29,7 +29,7 @@
         </div>
         <div style="margin:1em;">
             <form action="/" method="get">
-                <button type="submit" id="catalog" name="catalog">Catalog</button>
+                <button type="submit">Catalog</button>
             </form>
         </div>
 
@@ -41,17 +41,13 @@
             <span id="cur">0.0</span>
         </div>
 
-
-        <!-- <div class="hp_slide">
-             <div class="hp_range"></div>
-        </div> -->
-
         <input type="hidden" id="file" name="file" value="{{file}}">
+        <input type="hidden" id="reference_markup" name="reference_markup" value="{{reference_markup}}">
 
 
         <div id="graph"></div>
-        <div id="graph2"></div>
-        <div id="graph3"></div>
+        <div id="ref_graph"></div>
+
 
         <script src="/js/vendor/jquery.min.js"></script>
         <script src="/js/vendor/plotly-1.52.3.min.js"></script>

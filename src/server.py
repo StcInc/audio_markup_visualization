@@ -78,10 +78,13 @@ async def index(request):
         (
             f'<a href="/visualize?file={file[:-4]}">{file[:-4]}</a>',
             librosa.get_duration(filename=os.path.join(config["save_folder"], file)),
+            file,
+            ((file[:-4] + ".json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + ".json")) else ""),
+            ((file[:-4] + "_ref.json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + "_ref.json")) else "")
         )
         for file in files if file.endswith(".wav")
     ]
-    files = render_table(["file", "duration, s"], files)
+    files = render_table(["file", "duration, s", "audio", "markup", "reference markup(optional)"], files)
 
     return response.html(render_template(
         "index.html",
@@ -95,7 +98,8 @@ async def visualize(request):
     if file:
         return response.html(render_template(
             "visualize.html",
-            file=file
+            file=file,
+            reference_markup=((file + "_ref") if os.path.exists(os.path.join(config["save_folder"], file + "_ref.json")) else "")
         ))
     return response.html(render_template(
         "error.html",

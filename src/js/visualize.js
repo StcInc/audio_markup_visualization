@@ -14,7 +14,7 @@ var colors = [
 ];
 
 
-function  MarkupGraph(root) {
+function  MarkupGraph(root, title) {
     var graphData = []; // not used
 
     var graphShapes = [
@@ -22,7 +22,7 @@ function  MarkupGraph(root) {
 
 
     var graphLayout = {
-        title: 'Markup',
+        title: title || 'Markup',
         xaxis: {
             range: [0, 4],
 
@@ -128,11 +128,13 @@ function  MarkupGraph(root) {
 
 
 window.onload = function() {
-    var markupGraph = MarkupGraph('graph');
-    var markupGraph2 = MarkupGraph('graph2');
-    var markupGraph3 = MarkupGraph('graph3');
-
     var file = $("#file").val();
+    var referenceFile = $("#reference_markup").val();
+
+    var markupGraph = MarkupGraph('graph', 'Markup');
+    if (referenceFile) {
+        var referenceMarkupGraph = MarkupGraph('ref_graph', 'Reference markup');
+    }
 
     $('#play').click(function(){
         $("#status").text("Loading...");
@@ -140,14 +142,19 @@ window.onload = function() {
         audioObj.loop = false;
 
         markupGraph.drawPlot();
-        markupGraph2.drawPlot();
-        markupGraph3.drawPlot();
+        if (referenceFile){
+            referenceMarkupGraph.drawPlot();
+        }
 
         $.get("/markup?file=" + file, function(markup) {
             markupGraph.renderMarkup(markup);
-            markupGraph2.renderMarkup(markup);
-            markupGraph3.renderMarkup(markup);
         });
+
+        if (referenceFile) {
+            $.get("/markup?file=" + referenceFile, function(markup) {
+                referenceMarkupGraph.renderMarkup(markup);
+            });
+        }
 
 
         function canPlayThrough() {
@@ -156,8 +163,9 @@ window.onload = function() {
             $("#cur").text(0.0 + " / " + audioObj.duration + " s");
 
             markupGraph.setTimeLimits({start: 0, stop: audioObj.duration});
-            markupGraph2.setTimeLimits({start: 0, stop: audioObj.duration});
-            markupGraph3.setTimeLimits({start: 0, stop: audioObj.duration});
+            if (referenceFile) {
+                referenceMarkupGraph.setTimeLimits({start: 0, stop: audioObj.duration});
+            }
 
             $("#status").text("Playing...");
             audioObj.play();
@@ -166,8 +174,9 @@ window.onload = function() {
             audioObj.addEventListener("timeupdate", function() {
                 $("#cur").text(audioObj.currentTime + " / " + audioObj.duration + " s");
                 markupGraph.updateTicker(audioObj.currentTime, audioObj.duration);
-                markupGraph2.updateTicker(audioObj.currentTime, audioObj.duration);
-                markupGraph3.updateTicker(audioObj.currentTime, audioObj.duration);
+                if (referenceFile) {
+                    referenceMarkupGraph.updateTicker(audioObj.currentTime, audioObj.duration);
+                }
                 // var w = (currentTime) / duration * 100 +'%'
                 // $('.hp_range').stop(true, true).animate({'width': w}, 250,'linear');
             });
