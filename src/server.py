@@ -6,6 +6,7 @@ import time
 
 import codecs
 import argparse
+import librosa
 
 from sanic import Sanic
 import sanic.response as response
@@ -24,10 +25,11 @@ args = parser.parse_args()
 
 config_path = args.config
 
-def read_config(path=config_path):
+def read_json(path):
     with codecs.open(path, 'r', 'utf-8') as f:
         return json.load(f)
-config = read_config()
+
+config = read_json(path=config_path)
 
 os.makedirs(config["save_folder"], exist_ok=True)
 
@@ -71,36 +73,59 @@ def render_table(header, data):
 
 @app.route("/")
 async def index(request):
+    files = os.listdir(config["save_folder"])
+    files = [
+        (
+            f'<a href="/visualize?file={file[:-4]}">{file[:-4]}</a>',
+            librosa.get_duration(filename=os.path.join(config["save_folder"], file)),
+        )
+        for file in files if file.endswith(".wav")
+    ]
+    files = render_table(["file", "duration, s"], files)
+
     return response.html(render_template(
-        "index.html"
+        "index.html",
+        files=files
     ))
 
 
-@app.route("/catalog")
-async def catalog(request):
-    return response.json({"files": os.listdir(cofnig["save_folder"])})
-
+@app.route("/visualize")
+async def visualize(request):
+    file = request.args.get("file", None)
+    if file:
+        return response.html(render_template(
+            "visualize.html",
+            file=file
+        ))
+    return response.html(render_template(
+        "error.html",
+        error="No file provided, or invalid file"
+    ))
 
 @app.route("/audio")
 async def audio(request):
     # TODO: check if path provided and allowed, return file located at path
-    return await response.file('/media/monster/_Work/diarization/dir_vis/src/saved/tmp.wav')
+    file = request.args.get("file", None)
+    print(file)
+    if file:
+        path = os.path.join(config["save_folder"], file + ".wav")
+        if os.path.exists(path):
+            return await response.file(path)
+    return response.empty()
 
 
 @app.route("/markup")
 async def markup(request):
-    dummy_markup = {
-        "0": [
-            {"start": 0, "stop": 1330},
-            {"start": 1560, "stop": 2133}
-        ],
-        "1": [
-            {"start": 1120, "stop": 1567},
-            {"start": 2134, "stop": 2500}
-        ]
-    }
-    return response.json(dummy_markup)
-
+    file = request.args.get("file", None)
+    if file:
+        path = os.path.join(config["save_folder"], file + ".json")
+        if os.path.exists(path):
+            markup = read_json(path)
+            return response.json(markup)
+    return response.json(
+        {},
+        status=400
+    )
 
 
 if __name__ == "__main__":

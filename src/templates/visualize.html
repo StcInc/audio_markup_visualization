@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en" dir="ltr">
+    <head>
+        <meta charset="utf-8">
+        <meta http-equiv="X-UA-Compatible" content="IE=edge">
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+
+        <title>Diarization visualization</title>
+    </head>
+    <body>
+        <style media="screen">
+            .hp_slide{
+                width:98%;
+                background:grey;
+                height:25px;
+                margin-top: 25px;
+                margin-bottom: 25px;
+            }
+            .hp_range{
+                width:0;
+                background:black;
+                height:25px;
+            }
+        </style>
+
+
+        <div style="margin:1em;">
+            <h1>Визуализация разметки аудио</h1>
+        </div>
+        <div style="margin:1em;">
+            <form action="/" method="get">
+                <button type="submit" id="catalog" name="catalog">Catalog</button>
+            </form>
+        </div>
+
+
+        <div  style="margin:1em;">
+            <button type="button" id="play" name="start">Play</button>
+
+            <span id="status">Waiting...</span>
+            <span id="cur">0.0</span>
+        </div>
+
+
+        <!-- <div class="hp_slide">
+             <div class="hp_range"></div>
+        </div> -->
+
+        <input type="hidden" id="file" name="file" value="{{file}}">
+
+
+        <div id="graph"></div>
+        <div id="graph2"></div>
+        <div id="graph3"></div>
+
+        <script src="/js/vendor/jquery.min.js"></script>
+        <script src="/js/vendor/plotly-1.52.3.min.js"></script>
+        <script src="/js/visualize.js"></script>
+    </body>
+</html>

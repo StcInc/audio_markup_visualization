@@ -2,46 +2,24 @@
 <html lang="en" dir="ltr">
     <head>
         <meta charset="utf-8">
-        <meta http-equiv="X-UA-Compatible" content="IE=edge">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-
-        <title>Diarization visualization</title>
-    </head>
-    <body>
+        <title>Visualization files</title>
         <style media="screen">
-            .hp_slide{
-                width:98%;
-                background:grey;
-                height:25px;
-                margin-top: 25px;
-                margin-bottom: 25px;
+            table {
+                border-collapse: collapse;
+                border: 1px solid grey;
             }
-            .hp_range{
-                width:0;
-                background:black;
-                height:25px;
-            }
+            th {border: 1px solid grey; padding: 1em;}
+            td {border: 1px solid grey; padding: 1em;}
         </style>
 
-
-        <h1>Визуализация разметки диаризации</h1>
-
-        <button type="button" id="play" name="start">Play</button>
-
-        <span id="status">Waiting...</span>
-        <span id="cur">0.0</span>
-
-        <div class="hp_slide">
-             <div class="hp_range"></div>
+    </head>
+    <body>
+        <div style="margin:1em;">
+            <h1>Выбор файла для визуализации</h1>
+        </div>
+        <div style="margin:1em;">
+            {{files}}
         </div>
 
-
-        <div id="graph">
-
-        </div>
-
-        <script src="/js/vendor/jquery.min.js"></script>
-        <script src="/js/vendor/plotly-1.52.3.min.js"></script>
-        <script src="/js/index.js"></script>
     </body>
 </html>
