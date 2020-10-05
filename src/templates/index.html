@@ -18,8 +18,28 @@
             <h1>Выбор файла для визуализации</h1>
         </div>
         <div style="margin:1em;">
+            <form action="/upload" method="post" enctype="multipart/form-data">
+                <div class="">
+                    <label for="file">Choose file to upload</label>
+                    <input type="file" id="audio_file" name="audio_file">
+                </div>
+                <div class="">
+                    <label for="file">Choose markup file to upload</label>
+                    <input type="file" id="markup" name="markup">
+                </div>
+                <div class="">
+                    <label for="file">Choose markup file (reference) to upload</label>
+                    <input type="file" id="ref_markup" name="ref_markup">
+                </div>
+                <div class="">
+                    <input type="submit" value="Upload">
+                </div>
+            </form>
+
+        </div>
+        <div style="margin:1em;">
             {{files}}
         </div>
-
+        <script src="/js/index.js"></script>
     </body>
 </html>

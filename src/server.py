@@ -4,9 +4,12 @@ import sys
 import json
 import time
 
+import uuid
 import codecs
 import argparse
 import librosa
+
+import aiofiles
 
 from sanic import Sanic
 import sanic.response as response
@@ -71,19 +74,35 @@ def render_table(header, data):
 
 # app logic
 
+def last(x):
+    return x[-1]
+
+
+def get_duration(path):
+    try:
+        return librosa.get_duration(filename=path)
+    except Exception as e:
+        return ""
+
+
 @app.route("/")
 async def index(request):
     files = os.listdir(config["save_folder"])
     files = [
         (
             f'<a href="/visualize?file={file[:-4]}">{file[:-4]}</a>',
-            librosa.get_duration(filename=os.path.join(config["save_folder"], file)),
+            get_duration(os.path.join(config["save_folder"], file)),
             file,
             ((file[:-4] + ".json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + ".json")) else ""),
-            ((file[:-4] + "_ref.json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + "_ref.json")) else "")
+            ((file[:-4] + "_ref.json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + "_ref.json")) else ""),
+            # time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(s.st_mtime))
+            os.stat(os.path.join(config["save_folder"], file)).st_mtime
         )
-        for file in files if file.endswith(".wav")
+        for file in files
+        if file.endswith(".wav")
     ]
+    files = sorted(files, key=last, reverse=True)
+    files = [f[:-1] for f in files]
     files = render_table(["file", "duration, s", "audio", "markup", "reference markup(optional)"], files)
 
     return response.html(render_template(
@@ -130,6 +149,39 @@ async def markup(request):
         {},
         status=400
     )
+
+
+async def write_file(path, body):
+    async with aiofiles.open(path, 'wb') as f:
+        await f.write(body)
+    f.close()
+
+@app.route("/upload", methods=["GET", "POST"])
+async def upload(request):
+    audio_file = request.files.get('audio_file', None)
+    file_name = str(uuid.uuid4())
+
+    if audio_file:
+        path = os.path.join(config["save_folder"], file_name + ".wav")
+        await write_file(path, audio_file.body)
+
+    else:
+        return response.html(render_template(
+            "error.html",
+            error="No audio file provided for upload"
+        ))
+
+    markup_file = request.files.get('markup', None)
+    if markup_file:
+        path = os.path.join(config["save_folder"], file_name + ".json")
+        await write_file(path, markup_file.body)
+
+    ref_markup_file = request.files.get('ref_markup', None)
+    if ref_markup_file:
+        path = os.path.join(config["save_folder"], file_name + "_ref.json")
+        await write_file(path, ref_markup_file.body)
+
+    return response.redirect("/")
 
 
 if __name__ == "__main__":
