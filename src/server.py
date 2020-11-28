@@ -4,12 +4,16 @@ import sys
 import json
 import time
 
+from datetime import datetime
+from glob import glob
+
 import uuid
 import codecs
 import argparse
 import librosa
 
 import aiofiles
+import pysubs2
 
 from sanic import Sanic
 import sanic.response as response
@@ -35,6 +39,23 @@ def read_json(path):
 config = read_json(path=config_path)
 
 os.makedirs(config["save_folder"], exist_ok=True)
+
+
+
+def ass_to_json(ass_path):
+    res = {} # { speaker: [{start: start_ms, stop: stop_ms, text: 'phrase_text' } ]
+    subs = pysubs2.load(ass_path)
+    for i, line in enumerate(subs):
+        if line.type == 'Dialogue':
+            speaker_name = line.name
+            res[speaker_name] = res.get(speaker_name, [])
+            res[speaker_name].append({
+                'start': int(line.start), # in ms
+                'stop': int(line.end),
+                'text': line.text
+            })
+
+    return res
 
 
 # templating
@@ -85,25 +106,43 @@ def get_duration(path):
         return ""
 
 
+def gather_markup(file, read_markup=True):  # file - basename without extension
+    path = os.path.join(config["save_folder"], file)
+
+    json_files = glob(f"{path}*.json")
+    ass_files = glob(f"{path}*.ass")
+
+    if read_markup:
+        json_markup = {os.path.basename(f): read_json(f) for f in json_files}
+        ass_markup = {os.path.basename(f): ass_to_json(f) for f in ass_files}
+
+        markup = {k: m[k] for m in (json_markup, ass_markup) for k in m}
+        return markup
+    else:
+        return json_files + ass_files
+
+def ftime(timestamp):
+    return datetime.fromtimestamp(timestamp).strftime("%d.%m.%Y %H:%M:%S")
+
 @app.route("/")
 async def index(request):
-    files = os.listdir(config["save_folder"])
-    files = [
-        (
-            f'<a href="/visualize?file={file[:-4]}">{file[:-4]}</a>',
-            get_duration(os.path.join(config["save_folder"], file)),
-            file,
-            ((file[:-4] + ".json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + ".json")) else ""),
-            ((file[:-4] + "_ref.json") if os.path.exists(os.path.join(config["save_folder"], file[:-4] + "_ref.json")) else ""),
-            # time.strftime("%d.%m.%Y %H:%M:%S", time.localtime(s.st_mtime))
-            os.stat(os.path.join(config["save_folder"], file)).st_mtime
-        )
-        for file in files
-        if file.endswith(".wav")
-    ]
+    files = []
+    for file in os.listdir(config["save_folder"]):
+        if file.endswith(".wav"):
+            abs_path = os.path.join(config["save_folder"], file)
+            paths = [abs_path] + gather_markup(file[:-4], False)
+            duration = get_duration(abs_path)
+            m_time = max(float(os.stat(f).st_mtime) for f in paths)
+            files.append((
+                f'<a href="/visualize?file={file[:-4]}">{file[:-4]}</a>',
+                duration,
+                "<br>".join(paths),
+                ftime(m_time),
+                m_time
+            ))
     files = sorted(files, key=last, reverse=True)
     files = [f[:-1] for f in files]
-    files = render_table(["file", "duration, s", "audio", "markup", "reference markup(optional)"], files)
+    files = render_table(["id", "duration, s", "files", "last updated"], files)
 
     return response.html(render_template(
         "index.html",
@@ -117,8 +156,7 @@ async def visualize(request):
     if file:
         return response.html(render_template(
             "visualize.html",
-            file=file,
-            reference_markup=((file + "_ref") if os.path.exists(os.path.join(config["save_folder"], file + "_ref.json")) else "")
+            file=os.path.basename(file)
         ))
     return response.html(render_template(
         "error.html",
@@ -127,13 +165,14 @@ async def visualize(request):
 
 @app.route("/audio")
 async def audio(request):
-    # TODO: check if path provided and allowed, return file located at path
     file = request.args.get("file", None)
-    print(file)
     if file:
-        path = os.path.join(config["save_folder"], file + ".wav")
-        if os.path.exists(path):
-            return await response.file(path)
+        files = glob(os.path.join(config["save_folder"], os.path.basename(file) + ".*"))
+        if len(files):
+            for f in files:
+                ext = f.lower().split(".")[-1]
+                if ext in {"wav", "wave", "mp3", "mp4", "3gp", "m4a", "m4b", "m4p", "m4r", "m4v", "ogg", "ogv", "ogx", "ogm", "spx", "opus", "webm", "flac"}:
+                    return await response.file(f)
     return response.empty()
 
 
@@ -141,10 +180,9 @@ async def audio(request):
 async def markup(request):
     file = request.args.get("file", None)
     if file:
-        path = os.path.join(config["save_folder"], file + ".json")
-        if os.path.exists(path):
-            markup = read_json(path)
-            return response.json(markup)
+        markup = gather_markup(os.path.basename(file))
+        return response.json(markup)
+
     return response.json(
         {},
         status=400

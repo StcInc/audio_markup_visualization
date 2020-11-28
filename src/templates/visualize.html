@@ -23,30 +23,29 @@
             }
         </style>
 
+        <div id="controlls">
+            <div style="margin:1em;">
+                <h1>Audio markup visualization</h1>
+            </div>
+            <div style="margin:1em;">
+                <form action="/" method="get">
+                    <button type="submit">Catalog</button>
+                </form>
+            </div>
 
-        <div style="margin:1em;">
-            <h1>Audio markup visualization</h1>
+
+            <div style="margin:1em;">
+                <button type="button" id="play" name="start">Play</button>
+                <button type="button" id="reset" name="reset">Reset</button>
+
+                <span id="status">Loading...</span>
+                <span id="cur">0.0</span>
+            </div>
+
+            <input type="hidden" id="file" name="file" value="{{file}}">
         </div>
-        <div style="margin:1em;">
-            <form action="/" method="get">
-                <button type="submit">Catalog</button>
-            </form>
-        </div>
-
-
-        <div  style="margin:1em;">
-            <button type="button" id="play" name="start">Play</button>
-
-            <span id="status">Waiting...</span>
-            <span id="cur">0.0</span>
-        </div>
-
-        <input type="hidden" id="file" name="file" value="{{file}}">
-        <input type="hidden" id="reference_markup" name="reference_markup" value="{{reference_markup}}">
-
 
         <div id="graph"></div>
-        <div id="ref_graph"></div>
 
 
         <script src="/js/vendor/jquery.min.js"></script>

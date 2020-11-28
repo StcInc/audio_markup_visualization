@@ -15,20 +15,13 @@
 where every timestamp - is integer value, denoting time in **ms**.  
 Every speaker will have it's own track, displaying this speaker's activity in audio (see screenshot below).
 
+- `.ass` files with speaker labels and timestamps (text is unnecessary)
+
 ## Features:
 - supports unlimited number of speakers/tracks
 - can display up to two markup files for same audio simultaneously (may be increased later)
 - in case when markup is not available, will just play audio
 - simple audio catalog, displaying info about file sizes, markup availability
-
-## Limitations / TODO:
-- for now can only display two markup files simultaneously - can be increased later
-- for now only supports `.wav`  (16-bit Int PCM) but support can be extended to [other formats](https://developer.mozilla.org/ru/docs/Web/HTML/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D0%BC%D1%8B%D0%B5_%D0%BC%D0%B5%D0%B4%D0%B8%D0%B0_%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D1%8B) also, that will require some code modification.
-- for not doesn't support audio rewind
-- to restart playback requires page reload
-- doesn't display labels for speakers/tracks
-- doesn't support zoom sync between markups
-- for some reason audio playback doesn't work in safari
 
 
 
@@ -56,6 +49,15 @@ python server.py
 
 Frontend dependencies (JQuery and Plotly.js) already included
 
+
+## Limitations / TODO:
+- for now supports uploading up to two markup files along with audio
+- [browser supported audio formats](https://developer.mozilla.org/ru/docs/Web/HTML/%D0%9F%D0%BE%D0%B4%D0%B4%D0%B5%D1%80%D0%B6%D0%B8%D0%B2%D0%B0%D0%B5%D0%BC%D1%8B%D0%B5_%D0%BC%D0%B5%D0%B4%D0%B8%D0%B0_%D1%84%D0%BE%D1%80%D0%BC%D0%B0%D1%82%D1%8B)
+- `.json` and `.ass` markup (described previously) - to provide support for other formats, `server.py` modification is necessary
+- for not doesn't support playback from arbitrary position
+- doesn't display labels for speakers/tracks
+- audio playback and, in consequence, visualization doesn't work in safari
+- can not display markup without audio file, but can play audio without markup
 
 
 ## License
