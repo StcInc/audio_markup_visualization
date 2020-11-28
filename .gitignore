@@ -1,2 +1,5 @@
 *.wav
-src/saved/*
+saved/*
+*.ipynb
+config.json
+.DS_Store

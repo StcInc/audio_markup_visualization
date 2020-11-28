@@ -25,26 +25,31 @@ function  MarkupGraph(root, title) {
         title: title || 'Markup',
         xaxis: {
             range: [0, 4],
-
         },
         yaxis: {
             range: [0, TRACK_HEIGHT],
             showgrid: false,
             ticks: null,
             showline: false,
-            showticklabels: false
+            showticklabels: false,
+            fixedrange: true
         },
-        height: 250,
+        height: 300,
         shapes: graphShapes
     };
 
+    var graphConfig = {
+        responsive: true,
+        scrollZoom: true
+    }
 
 
     function drawPlot(){
         Plotly.newPlot(
             root,
             graphData,
-            graphLayout
+            graphLayout,
+            graphConfig
         );
     }
 
@@ -117,12 +122,20 @@ function  MarkupGraph(root, title) {
         updatePlot();
     }
 
+    function setOnClickCallback(callback) {  // TODO: doesn't work for some reason
+        console.log("Setting up on click callback");
+        document.getElementById(root).on('plotly_click', function(data) {
+            alert("Clicked");
+        });
+    }
+
     return {
         drawPlot: drawPlot,
         updatePlot: updatePlot,
         setTimeLimits: setTimeLimits,
         updateTicker: updateTicker,
-        renderMarkup: renderMarkup
+        renderMarkup: renderMarkup,
+        setOnClickCallback: setOnClickCallback
     }
 }
 
@@ -136,9 +149,11 @@ window.onload = function() {
         var referenceMarkupGraph = MarkupGraph('ref_graph', 'Reference markup');
     }
 
+    var audioObj = null;
+
     $('#play').click(function(){
         $("#status").text("Loading...");
-        var audioObj = new Audio("/audio?file=" + file);
+        audioObj = new Audio("/audio?file=" + file);
         audioObj.loop = false;
 
         markupGraph.drawPlot();
@@ -156,6 +171,9 @@ window.onload = function() {
             });
         }
 
+        markupGraph.setOnClickCallback(function (data) {
+            console.log("On click", data);
+        });
 
         function canPlayThrough() {
             audioObj.removeEventListener("canplaythrough", canPlayThrough);
